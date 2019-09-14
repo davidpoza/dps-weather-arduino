@@ -24,8 +24,8 @@ float humidity;
 
 void setup() {
    Serial.begin(9600);
-   //delay(4000);   
-   while(!Serial);    // time to get serial running
+   delay(4000);   
+   //while(!Serial);    // time to get serial running
     Serial.println(F("BME280 test"));
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
       Serial.println(F("SSD1306 allocation failed"));
@@ -54,7 +54,8 @@ void loop() {
   
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
-  pressure = bme.readPressure() / 100.0F;
+  //pressure = bme.readPressure() / 100.0F;
+  pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
   printValues(temperature, humidity, pressure);
   drawData(temperature, humidity, pressure);
   delay(delayTime);
