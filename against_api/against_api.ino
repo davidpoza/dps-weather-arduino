@@ -1,6 +1,8 @@
-
+#include "functions.h"
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+
+#include <ArduinoLowPower.h>
 
 #include <SPI.h>
 #include <Wire.h>
@@ -21,15 +23,20 @@ unsigned long delayTime;
 float temperature;
 float pressure;
 float humidity;
+String token;
 
 void setup() {
    Serial.begin(9600);
-    while(!Serial);    // time to get serial running
+   connect_to_wifi();
+   token = sendAuth("pozasuarez@gmail.com", "Solein66@");
+   
+   delay(4000);   
+   //while(!Serial);    // time to get serial running
     Serial.println(F("BME280 test"));
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
       Serial.println(F("SSD1306 allocation failed"));
-      for(;;); // Don't proceed, loop forever
-    }
+     for(;;); // Don't proceed, loop forever
+   }
     unsigned status;    
     status = bme.begin();  
     if (!status) {
@@ -50,13 +57,15 @@ void setup() {
 }
 
 void loop() {
-  
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
-  pressure = bme.readPressure() / 100.0F;
+  //pressure = bme.readPressure() / 100.0F;
+  pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
   printValues(temperature, humidity, pressure);
   drawData(temperature, humidity, pressure);
-  delay(delayTime);
+  logData(token, temperature, humidity, pressure);
+  //delay(delayTime);
+  LowPower.sleep(1000*60*10);
 }
 
 void printValues(float t, float h, float p) {

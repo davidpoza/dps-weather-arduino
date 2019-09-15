@@ -1,4 +1,3 @@
-
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
@@ -21,6 +20,7 @@ unsigned long delayTime;
 float temperature;
 float pressure;
 float humidity;
+
 
 void setup() {
    Serial.begin(9600);
