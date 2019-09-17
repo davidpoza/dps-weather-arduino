@@ -65,8 +65,7 @@ void loop() {
   pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
   printValues(temperature, humidity, pressure);
   drawData(temperature, humidity, pressure);
-  logData(token, temperature, humidity, pressure);
-  //delay(delayTime);
+  logData(token, temperature, humidity, pressure);  
   disconnect_wifi();
   LowPower.sleep(1000*60*REFRESH_TIME_MIN);
 }

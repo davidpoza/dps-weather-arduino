@@ -18,15 +18,12 @@ void connect_to_wifi() {
     Serial.println("Please upgrade the firmware");
   }
 
-  if(WiFi.status() == WL_CONNECTED)
-    return;
-
   // attempt to connect to Wifi network:
-  while (status != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print("[WiFi] Connecting to: ");
     Serial.println(ssid);
     // Connect to WPA/WPA2 network:
-    status = WiFi.begin(ssid, pass);
+    WiFi.begin(ssid, pass);
 
     // wait 10 seconds for connection:
     delay(100);
