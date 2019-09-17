@@ -1,4 +1,5 @@
 #include "functions.h"
+#include "config.h"
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
@@ -28,7 +29,7 @@ String token;
 void setup() {
    Serial.begin(9600);
    connect_to_wifi();
-   token = sendAuth("pozasuarez@gmail.com", "Solein66@");
+   token = sendAuth(API_USER, API_PASSWORD);
    
    delay(4000);   
    //while(!Serial);    // time to get serial running
@@ -57,6 +58,7 @@ void setup() {
 }
 
 void loop() {
+  connect_to_wifi();
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   //pressure = bme.readPressure() / 100.0F;
@@ -65,7 +67,8 @@ void loop() {
   drawData(temperature, humidity, pressure);
   logData(token, temperature, humidity, pressure);
   //delay(delayTime);
-  LowPower.sleep(1000*60*10);
+  disconnect_wifi();
+  LowPower.sleep(1000*60*REFRESH_TIME_MIN);
 }
 
 void printValues(float t, float h, float p) {

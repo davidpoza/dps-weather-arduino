@@ -5,7 +5,7 @@
 const char ssid[] = "ANDESELEE";
 const char pass[] = "u1pyrttnk8sgs";
 
-const char server[] = "dps-weather-api.glitch.me";
+const char server[] = "apiweather.davidinformatico.com";
 const int port = 443;
 
 int status = WL_IDLE_STATUS;
@@ -13,10 +13,13 @@ WiFiSSLClient client;
 HttpClient http_client = HttpClient(client, server, port);
 
 void connect_to_wifi() {
-  String fv = WiFi.firmwareVersion();
+  String fv =  WiFi.firmwareVersion();
   if (fv < "1.0.0") {
     Serial.println("Please upgrade the firmware");
   }
+
+  if(WiFi.status() == WL_CONNECTED)
+    return;
 
   // attempt to connect to Wifi network:
   while (status != WL_CONNECTED) {
@@ -28,9 +31,13 @@ void connect_to_wifi() {
     // wait 10 seconds for connection:
     delay(100);
   }
-
-  // you're connected now, so print out the data:
   Serial.println("[WiFi] Connected");
+}
+
+void disconnect_wifi() {
+  status = WiFi.disconnect();
+  WiFi.end();
+  Serial.println("[WiFi] Disconnected");
 }
 
 String sendAuth(String email, String password) {
