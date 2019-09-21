@@ -1,14 +1,19 @@
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BMP280.h"
-
+// por defecto la libreria lee en la direccion 0x77, y para poner el chip en esa dirección mandamos un 
+// valor 1 en el pin sd0
 Adafruit_BMP280 bmp; // I2C
 float presion; // Almacena la presion atmosferica (Pa)
 float temperatura; // Almacena la temperatura (oC)
 int altitud; // Almacena la altitud (m) (se puede usar variable float)
 
 void setup() {
-  bmp.begin(); // Inicia el sensor
-  Serial.begin(9600); // Inicia comunicacion serie
+  Serial.begin(9600);// Inicia comunicacion serie
+  delay(2000);
+  if(!bmp.begin()){ // Inicia el sensor
+    Serial.println("BMP280 no encontrado");
+    delay(10);
+  }
   Serial.println("BMP280 Sensor de Presion y Temperatura");
 }
 
@@ -21,14 +26,7 @@ void loop() {
    // Imprime valores por el serial monitor:
    Serial.print(F("Presion: "));
    Serial.print(presion);
-   Serial.print(" hPa");
-   Serial.print("\t");
-   Serial.print(("Temp: "));
-   Serial.print(temperatura);
-   Serial.print(" *C");
-   Serial.print("\t");
-   Serial.print("Altitud (aprox): ");
-   Serial.print(altitud); 
-   Serial.println(" m");
-   delay(1000);
+   Serial.println(" hPa");
+
+   delay(3000);
 }
