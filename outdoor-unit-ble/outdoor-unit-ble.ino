@@ -24,18 +24,39 @@ float humidity;
   
 void setup() {
    #ifdef DEBUG
-   Serial.begin(9600);   
+   Serial.begin(9600);
+   delay(2000);
+   pinMode(1, OUTPUT);   
    #endif
 }
 
 void loop() {
-  readSensorBme280();
+  #ifdef DEBUG
+  Serial.println("Activando sensor bme280");
+  #endif DEBUG
+  digitalWrite(1,HIGH); //enciende sensor
+  while (!bme.begin()) {
+      #ifdef DEBUG
+      Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+      #endif
+  }
+  temperature = bme.readTemperature();
+  humidity = bme.readHumidity();
+  pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
+  #ifdef DEBUG
+  
+  printValues(temperature, humidity, pressure);
+  Serial.println("Desactivando sensor bme280");
+  #endif DEBUG
+  
+  digitalWrite(1,LOW); //apago el sensor bme
+  
   activate_ble_and_publish(temperature, pressure, humidity);
   BLEDevice central = BLE.central();
   while (!central) {
     central = BLE.central();
     #ifdef DEBUG
-    Serial.println("Esperando a que la central se conecte");
+    //Serial.println("Esperando a que la central se conecte");
     #endif DEBUG
   }  
   
@@ -50,28 +71,6 @@ void loop() {
   deactivate_ble_and_sleep(); 
 }
 
-void readSensorBme280(){
-  #ifdef DEBUG
-  Serial.println("Activando sensor bme280");
-  #endif DEBUG
-  digitalWrite(1,HIGH); //enciende sensor
-  while (!bme.begin()) {
-      #ifdef DEBUG
-      Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-      #endif
-  }
-  
-  temperature = bme.readTemperature();
-  humidity = bme.readHumidity();
-  pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
-  #ifdef DEBUG
-  printValues(temperature, humidity, pressure);
-  Serial.println("Desactivando sensor bme280");
-  #endif DEBUG
-  digitalWrite(1,LOW); //apago el sensor bme
-}
-
-#ifdef DEBUG
 void printValues(float t, float h, float p) {
     Serial.print("Temperatura = ");
     Serial.print(t);
@@ -87,4 +86,3 @@ void printValues(float t, float h, float p) {
 
     Serial.println();
 }
-#endif
