@@ -1,5 +1,11 @@
-First of all, you need to create a file config.h with the following constants:
-```
-#define API_USER "xxxxxxxxx"
-#define API_PASSWORD "xxxxxxxxxx"
-#define REFRESH_TIME_MIN 10
+#define API_PASSWORD "xxxxx"
+#define API_USER "xxxxx"
+#define API_PORT 443
+#define WIFI_SSID "xxxxx"
+#define WIFI_PASS "xxxxxx"
+#define API_SERVER "https://xxxxx"
+#define OUTDOOR_STATION_ID "19B10000-E8F2-537E-4F6C-D104768A1214" //as config on station
+#define OUTDOOR_STATION_NAME "Estación exterior"
+#define TEMP_ID "19B10001-E8F2-537E-4F6C-D104768A1214"
+#define PRESS_ID "19B10002-E8F2-537E-4F6C-D104768A1214"
+#define HUM_ID "19B10003-E8F2-537E-4F6C-D104768A1214"

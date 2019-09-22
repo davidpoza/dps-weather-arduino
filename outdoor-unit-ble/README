@@ -1,5 +1,9 @@
 First of all, you need to create a file config.h with the following constants:
 ```
-#define API_USER "xxxxxxxxx"
-#define API_PASSWORD "xxxxxxxxxx"
-#define REFRESH_TIME_MIN 10
+#define SLEEP_TIME_MIN 5
+#define STATION_NAME "Estación exterior"
+#define STATION_ID "19B10000-E8F2-537E-4F6C-D104768A1214"
+#define TEMP_ID "19B10001-E8F2-537E-4F6C-D104768A1214"
+#define PRESS_ID "19B10002-E8F2-537E-4F6C-D104768A1214"
+#define HUM_ID "19B10003-E8F2-537E-4F6C-D104768A1214"
+//#define DEBUG true
