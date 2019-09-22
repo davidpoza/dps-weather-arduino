@@ -1,0 +1,5 @@
+First of all, you need to create a file config.h with the following constants:
+```
+#define API_USER "xxxxxxxxx"
+#define API_PASSWORD "xxxxxxxxxx"
+#define REFRESH_TIME_MIN 10
