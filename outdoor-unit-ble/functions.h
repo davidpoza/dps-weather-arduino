@@ -31,5 +31,5 @@ void activate_ble_and_publish(float temperature, float pressure, float humidity)
   BLE.advertise();
   #ifdef DEBUG
   Serial.println("Anunciando periférico");
-  #endif DEBUG  
+  #endif DEBUG
 }

@@ -26,8 +26,8 @@ void setup() {
    #ifdef DEBUG
    Serial.begin(9600);
    delay(2000);
-   pinMode(1, OUTPUT);   
    #endif
+   pinMode(1, OUTPUT);  
 }
 
 void loop() {
@@ -43,20 +43,18 @@ void loop() {
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
-  #ifdef DEBUG
-  
+  #ifdef DEBUG  
   printValues(temperature, humidity, pressure);
   Serial.println("Desactivando sensor bme280");
   #endif DEBUG
   
   digitalWrite(1,LOW); //apago el sensor bme
-  
-  activate_ble_and_publish(temperature, pressure, humidity);
+  activate_ble_and_publish(temperature, humidity, pressure);
   BLEDevice central = BLE.central();
   while (!central) {
     central = BLE.central();
     #ifdef DEBUG
-    //Serial.println("Esperando a que la central se conecte");
+    Serial.println("Esperando a que la central se conecte");
     #endif DEBUG
   }  
   
