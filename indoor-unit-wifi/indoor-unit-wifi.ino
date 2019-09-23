@@ -32,9 +32,8 @@ String token;
 
 void setup() {
    Serial.begin(9600);
-   if (!BLE.begin()) {
+   while (!BLE.begin()) {
      Serial.println("starting BLE failed!");
-     while (1);
    }
    //connect_to_wifi();
    //token = sendAuth(API_USER, API_PASSWORD);   
@@ -54,18 +53,18 @@ void setup() {
       Serial.print("        ID of 0x61 represents a BME 680.\n");
       while (1);
     }*/
-    BLE.scanForUuid(OUTDOOR_STATION_ID);
+   BLE.scanForUuid(OUTDOOR_STATION_ID);
 }
 
-void loop() {
+void loop() {  
   BLEDevice peripheral = BLE.available();
   if (peripheral) {
     Serial.println("Descubierta unidad");
     if (peripheral.hasLocalName()) {
       Serial.print("Local Name: ");
-      Serial.println(peripheral.localName());
-      waitForSensor(peripheral);
+      Serial.println(peripheral.localName());      
     }
+    readSensors(peripheral);    
   }
   //temperature = bme.readTemperature();
   //humidity = bme.readHumidity();
@@ -113,9 +112,17 @@ void printValues(float t, float h, float p) {
   display.display();
 }*/
 
-void waitForSensor(BLEDevice peripheral){
-    BLE.stopScan();
-    //nos hemos conectado
+void readSensors(BLEDevice peripheral){
+    BLE.stopScan(); //si no paro el escaneo no puedo conectar
+    // connect to the peripheral
+    Serial.println("Conectando ...");
+    
+    if (peripheral.connect()) {
+      Serial.println("Conexión realizada con unidad externa");
+    } else {
+    Serial.println("Error al conectar con unidad externa!");
+      return;
+    }
     BLECharacteristic temperatureCharacteristic = peripheral.characteristic(TEMP_ID);
     BLECharacteristic humidityCharacteristic = peripheral.characteristic(HUM_ID);
     BLECharacteristic pressureCharacteristic = peripheral.characteristic(PRESS_ID);
@@ -123,13 +130,17 @@ void waitForSensor(BLEDevice peripheral){
     float humidity;
     float pressure;
     byte tmp_value;
-    peripheral.connect();
-    Serial.println("Contectado a unidad exterior:");    
-    temperatureCharacteristic.readValue(tmp_value);
-    Serial.println("temperatura:");
-    Serial.println(tmp_value, HEX);
-    //humidity = (float) humidityCharacteristic.value();
-    //pressure = (float) pressureCharacteristic.value();
+  
+    temperatureCharacteristic.readValue(tmp_value); //aquí me lee 0
+    Serial.print("temp en byte ...");
+    Serial.println(tmp_value);
+    temp = (float) tmp_value;
+    humidityCharacteristic.readValue(tmp_value);
+    humidity = (float) tmp_value;
+    pressureCharacteristic.readValue(tmp_value);
+    pressure = (float) tmp_value;
+    
+    printValues(temp, humidity, pressure);
     peripheral.disconnect();
     BLE.scanForUuid(OUTDOOR_STATION_ID);
 }
