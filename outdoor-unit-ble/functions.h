@@ -10,7 +10,7 @@ void deactivate_ble_and_sleep(){
   LowPower.sleep(1000*60*SLEEP_TIME_MIN);
 }
 
-void activate_ble_and_publish(float temperature, float pressure, float humidity) {
+void activate_ble_and_publish(float temperature, float humidity, float pressure) {
   #ifdef DEBUG
   Serial.println("Conectando BLE");
   #endif DEBUG

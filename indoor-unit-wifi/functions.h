@@ -1,4 +1,5 @@
 #include <WiFiNINA.h>
+#include <ArduinoBLE.h>
 #include <ArduinoHttpClient.h>
 #include <ArduinoJson.h>
 #include "config.h"
@@ -6,6 +7,19 @@
 int status = WL_IDLE_STATUS;
 WiFiSSLClient client;
 HttpClient http_client = HttpClient(client, API_SERVER, API_PORT);
+
+void connect_ble() {
+  Serial.println("[BLE] Activating: ");
+  while (!BLE.begin()) {
+     Serial.println("starting BLE failed!");
+   }
+}
+
+void disconnect_ble() {
+  BLE.disconnect();
+  BLE.end();
+  Serial.println("[BLE] Deactivated: ");
+}
 
 void connect_to_wifi() {
   while (WiFi.status() != WL_CONNECTED) {
@@ -42,6 +56,7 @@ String sendAuth(String email, String password) {
 }
 
 void logData(String token, float temperature, float humidity, float pressure) {
+  connect_to_wifi();
   String temperatureString = String(temperature);
   String humidityString = String(humidity);
   String pressureString = String(pressure);
@@ -69,4 +84,5 @@ void logData(String token, float temperature, float humidity, float pressure) {
   Serial.println(statusCode);
   Serial.print("[HTTP] Response: ");
   Serial.println(response);
+  disconnect_wifi();
 }
