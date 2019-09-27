@@ -22,7 +22,7 @@
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 
-//Adafruit_BME280 bme; // I2C
+Adafruit_BME280 bme; // I2C
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 float indoor_temperature = 0.0;
@@ -37,61 +37,69 @@ void setup() {
    delay(2000);
    connect_to_wifi();
    token = sendAuth(API_USER, API_PASSWORD);
-   disconnect_wifi();   //ble y wifi al mismo tiempo da problemas?
+   disconnect_wifi();   //actualmente wifinina no puede usarse al mismo tiempo que arduinoble?
    connect_ble();
       
    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
      Serial.println(F("SSD1306 allocation failed"));
      for(;;); // Don't proceed, loop forever
    }
-   /*unsigned status = bme.begin();  
+   unsigned status = bme.begin();  
    if (!status) {
-      Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-      Serial.print("SensorID was: 0x"); Serial.println(bme.sensorID(),16);
-      Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
-      Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
-      Serial.print("        ID of 0x60 represents a BME 280.\n");
-      Serial.print("        ID of 0x61 represents a BME 680.\n");
-      while (1);
-    }*/
+     Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+     Serial.print("SensorID was: 0x"); Serial.println(bme.sensorID(),16);
+     Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
+     Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
+     Serial.print("        ID of 0x60 represents a BME 280.\n");
+     Serial.print("        ID of 0x61 represents a BME 680.\n");
+     while (1);
+   }
    BLE.scanForUuid(OUTDOOR_STATION_ID);
 }
 
-void loop() {  
+void loop() {
+  readLocalSensors(bme, &indoor_temperature, &indoor_humidity, &pressure);
+  Serial.println("Buscando unidad de exterior... ");
   BLEDevice peripheral = BLE.available();
   if (peripheral) {
     Serial.println("Descubierta unidad");
     if (peripheral.hasLocalName()) {
       Serial.print("Local Name: ");
-      Serial.println(peripheral.localName());      
+      Serial.println(peripheral.localName());
     }
-    readSensors(peripheral, &outdoor_temperature, &outdoor_humidity, &pressure);
-    drawData(0, 0, pressure, outdoor_temperature, outdoor_humidity);
+    readRemoteSensors(peripheral, &outdoor_temperature, &outdoor_humidity);
     disconnect_ble();
     logData(token, outdoor_temperature, outdoor_humidity, pressure);
     connect_ble();
     BLE.scanForUuid(OUTDOOR_STATION_ID);
   }
-  //temperature = bme.readTemperature();
-  //humidity = bme.readHumidity();
-  //pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
+  drawData(indoor_temperature, indoor_humidity, pressure, outdoor_temperature, outdoor_humidity);
+  //aquí va otro logData con un station_id = indoor
+  delay(INDOOR_REFRESH_TIME_SEC*1000);
+}
+
+void readLocalSensors(Adafruit_BME280 bme, float *temp, float *humidity, float *pressure){
+  *temp = bme.readTemperature();
+  *humidity = bme.readHumidity();
+  *pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
 }
 
 void printValues(float t, float h, float p) {
-    Serial.print("Temperatura = ");
-    Serial.print(t);
-    Serial.println(" *C");
+  Serial.print("Temperatura = ");
+  Serial.print(t);
+  Serial.println(" *C");
 
-    Serial.print("Humedad = ");
-    Serial.print(h);
-    Serial.println(" %");
+  Serial.print("Humedad = ");
+  Serial.print(h);
+  Serial.println(" %");
 
-    Serial.print("Presion = ");
-    Serial.print(p);
-    Serial.println(" hPa");
+  Serial.print("Presion = ");
+  Serial.print(p);
+  Serial.println(" hPa");
 }
 
 void drawData(float t, float h, float p, float te, float he) {
+  Serial.println("Actualizando pantalla....");
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
   display.setTextColor(WHITE); // Draw white text
@@ -116,7 +124,7 @@ void drawData(float t, float h, float p, float te, float he) {
   display.display();
 }
 
-void readSensors(BLEDevice peripheral, float *temp, float *humidity, float *pressure){
+void readRemoteSensors(BLEDevice peripheral, float *temp, float *humidity){
     BLE.stopScan(); //si no paro el escaneo no puedo conectar
     // connect to the peripheral
     Serial.println("Conectando ...");
@@ -139,7 +147,6 @@ void readSensors(BLEDevice peripheral, float *temp, float *humidity, float *pres
     
     BLECharacteristic temperatureCharacteristic = peripheral.characteristic(TEMP_ID);
     BLECharacteristic humidityCharacteristic = peripheral.characteristic(HUM_ID);
-    BLECharacteristic pressureCharacteristic = peripheral.characteristic(PRESS_ID);
 
     uint8_t tmp[4];
 
@@ -149,12 +156,8 @@ void readSensors(BLEDevice peripheral, float *temp, float *humidity, float *pres
 
     humidityCharacteristic.readValue(tmp, 4);
     *humidity = *(float*)&tmp;
-
-    pressureCharacteristic.readValue(tmp, 4);
-    *pressure = *(float*)&tmp;
-   
-    printValues(*temp, *humidity, *pressure);
-
+  
+    printValues(*temp, *humidity, 0);
     
     peripheral.disconnect();
 }

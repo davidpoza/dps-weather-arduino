@@ -4,21 +4,27 @@
 #include <ArduinoJson.h>
 #include "config.h"
 
-int status = WL_IDLE_STATUS;
 WiFiSSLClient client;
 HttpClient http_client = HttpClient(client, API_SERVER, API_PORT);
 
 void connect_ble() {
-  Serial.println("[BLE] Activating: ");
+  Serial.println("[BLE] Activating...");
   while (!BLE.begin()) {
-     Serial.println("starting BLE failed!");
-   }
+    Serial.println("starting BLE failed!");
+    delay(1000);
+  }
+  Serial.println("[BLE] Activated");
 }
 
 void disconnect_ble() {
-  BLE.disconnect();
+  while(BLE.connected()){
+    BLE.disconnect();
+    Serial.println("disconnect BLE failed!");
+    delay(1000);
+  }
   BLE.end();
-  Serial.println("[BLE] Deactivated: ");
+  Serial.println("[BLE] Deactivated");
+  delay(1000);
 }
 
 void connect_to_wifi() {
@@ -27,15 +33,22 @@ void connect_to_wifi() {
     Serial.println(WIFI_SSID);
     // Connect to WPA/WPA2 network:
     WiFi.begin(WIFI_SSID, WIFI_PASS);
-    delay(100);
+    delay(1000);
   }
   Serial.println("[WiFi] Connected");
 }
 
 void disconnect_wifi() {
-  status = WiFi.disconnect();
+  WiFi.disconnect();
+  while(WiFi.status() != WL_DISCONNECTED){
+    Serial.println("disconnect BLE failed!");
+    WiFi.disconnect();    
+    delay(1000);
+  }
+  
   WiFi.end();
   Serial.println("[WiFi] Disconnected");
+  delay(1000);
 }
 
 String sendAuth(String email, String password) {
