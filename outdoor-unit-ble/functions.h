@@ -4,7 +4,7 @@
 
 void deactivate_ble_and_sleep(){
   #ifdef DEBUG
-  Serial.println("Desconectando BLE");
+  Serial.println("Desconectando BLE y entrando en modo sleep");
   #endif DEBUG  
   BLE.end();
   LowPower.sleep(1000*60*SLEEP_TIME_MIN);
