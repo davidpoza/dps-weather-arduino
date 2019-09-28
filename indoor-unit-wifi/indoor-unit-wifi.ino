@@ -69,7 +69,8 @@ void loop() {
     }
     readRemoteSensors(peripheral, &outdoor_temperature, &outdoor_humidity);
     disconnect_ble();
-    logData(token, outdoor_temperature, outdoor_humidity, pressure);
+    logData(token, STATION_ID_OUTDOOR, outdoor_temperature, outdoor_humidity, pressure);
+    logData(token, STATION_ID_INDOOR, indoor_temperature, indoor_humidity, pressure);
     connect_ble();
     BLE.scanForUuid(OUTDOOR_STATION_ID);
   }

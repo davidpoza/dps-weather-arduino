@@ -68,12 +68,12 @@ String sendAuth(String email, String password) {
   return token;
 }
 
-void logData(String token, float temperature, float humidity, float pressure) {
+void logData(String token, String station_id, float temperature, float humidity, float pressure) {
   connect_to_wifi();
   String temperatureString = String(temperature);
   String humidityString = String(humidity);
   String pressureString = String(pressure);
-  String postData = "temperature="+temperatureString+"&humidity="+humidityString+"&pressure="+pressureString;
+  String postData = "station_id="+station_id+"&temperature="+temperatureString+"&humidity="+humidityString+"&pressure="+pressureString;
   StaticJsonDocument<1000> doc;
   Serial.println("[HTTP] Logging data...");
   Serial.println("token: "+token);
