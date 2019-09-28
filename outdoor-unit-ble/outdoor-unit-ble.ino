@@ -16,6 +16,7 @@
 #include "functions.h"
 #include "config.h"
 
+volatile bool just_wakeup = true;
 Adafruit_BME280 bme; // I2C
 
 float temperature;
@@ -23,11 +24,11 @@ float pressure;
 float humidity;
   
 void setup() {
-   #ifdef DEBUG
-   Serial.begin(9600);
-   delay(2000);
-   #endif
-   pinMode(1, OUTPUT);  
+  #ifdef DEBUG
+  Serial.begin(9600);
+  delay(2000);
+  #endif
+  pinMode(1, OUTPUT);
 }
 
 void loop() {
@@ -36,9 +37,9 @@ void loop() {
   #endif DEBUG
   digitalWrite(1,HIGH); //enciende sensor
   while (!bme.begin()) {
-      #ifdef DEBUG
-      Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-      #endif
+    #ifdef DEBUG
+    Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+    #endif
   }
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
@@ -70,17 +71,17 @@ void loop() {
 }
 
 void printValues(float t, float h, float p) {
-    Serial.print("Temperatura = ");
-    Serial.print(t);
-    Serial.println(" *C");
+  Serial.print("Temperatura = ");
+  Serial.print(t);
+  Serial.println(" *C");
 
-    Serial.print("Humedad = ");
-    Serial.print(h);
-    Serial.println(" %");
+  Serial.print("Humedad = ");
+  Serial.print(h);
+  Serial.println(" %");
 
-    Serial.print("Presion = ");
-    Serial.print(p);
-    Serial.println(" hPa");
+  Serial.print("Presion = ");
+  Serial.print(p);
+  Serial.println(" hPa");
 
-    Serial.println();
+  Serial.println();
 }
