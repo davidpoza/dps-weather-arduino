@@ -37,7 +37,7 @@ void setup() {
    delay(2000);
    connect_to_wifi();
    token = sendAuth(API_USER, API_PASSWORD);
-   disconnect_wifi();   //actualmente wifinina no puede usarse al mismo tiempo que arduinoble?
+   disconnect_wifi();   //actualmente wifinina no puede usarse al mismo tiempo que arduinoble
    connect_ble();
       
    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
