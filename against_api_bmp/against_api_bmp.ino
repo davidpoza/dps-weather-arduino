@@ -16,7 +16,7 @@
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 
 Adafruit_BMP280 bmp; // I2C
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+//Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 
 
@@ -28,40 +28,40 @@ String token;
 
 void setup() {
    Serial.begin(9600);
-   connect_to_wifi();
-   token = sendAuth(API_USER, API_PASSWORD);
+   //token = sendAuth(API_USER, API_PASSWORD);
+   token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI1ZDgwZmUyMDk0NDEyMTAwMTNiNjQ0NzMiLCJleHAiOjE1NjkwODc4NDEwNTgsImVtYWlsIjoicG96YXN1YXJlekBnbWFpbC5jb20ifQ.evIjoVUDz_PYVd0ZB_UmzMkXAkYURz3OLXHoN3CAQf8";
    
-   delay(4000);   
-   //while(!Serial);    // time to get serial running
-    Serial.println(F("BMP280 test"));
-    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
-      Serial.println(F("SSD1306 allocation failed"));
-     for(;;); // Don't proceed, loop forever
-   }
+   // Serial.println(F("BMP280 test"));
+    //if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
+    //  Serial.println(F("SSD1306 allocation failed"));
+    // for(;;); // Don't proceed, loop forever
+   //}
+    //enciendo el sensor bme
    
-    while (!bmp.begin()) {
-        Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-    }
-    
-    Serial.println("-- Default Test --");
-    delayTime = 3000;
-
-    Serial.println();
 
 }
 
 void loop() {
   connect_to_wifi();
+  digitalWrite(1,HIGH);
+  while (!bmp.begin()) {
+       Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+  }
   //temperature = bme.readTemperature();
   //humidity = bme.readHumidity();
   //pressure = bme.readPressure() / 100.0F;
   pressure = bmp.seaLevelForAltitude(920, bmp.readPressure() / 100.0F);
   printValues(temperature, humidity, pressure);
-  drawData(temperature, humidity, pressure);
+  //drawData(temperature, humidity, pressure);
   //logData(token, temperature, humidity, pressure);  
   disconnect_wifi();
-  LowPower.sleep(1000*60*REFRESH_TIME_MIN);
+  digitalWrite(1,LOW); //apago el sensor bme
+  digitalWrite(11,LOW); //apago el sensor bme 
+  digitalWrite(12,LOW); //apago el sensor bme    
+  LowPower.sleep(1000*15*REFRESH_TIME_MIN);
+  //delay(1000*60);
 }
+
 
 void printValues(float t, float h, float p) {
     Serial.print("Temperatura = ");
@@ -79,7 +79,7 @@ void printValues(float t, float h, float p) {
     Serial.println();
 }
 
-void drawData(float t, float h, float p) {
+/*void drawData(float t, float h, float p) {
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
   display.setTextColor(WHITE); // Draw white text
@@ -98,4 +98,4 @@ void drawData(float t, float h, float p) {
   display.println(F(" hPa"));
   
   display.display();
-}
+}*/

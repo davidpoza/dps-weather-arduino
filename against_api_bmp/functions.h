@@ -13,20 +13,24 @@ WiFiSSLClient client;
 HttpClient http_client = HttpClient(client, server, port);
 
 void connect_to_wifi() {
-  String fv =  WiFi.firmwareVersion();
-  if (fv < "1.0.0") {
-    Serial.println("Please upgrade the firmware");
-  }
-
+  IPAddress staticIP(192,168,1,66);
+  IPAddress gateway(192,168,1,1);
+  IPAddress subnet(255,255,255,0);
+  IPAddress dns(8,8,8,8); 
+  
   // attempt to connect to Wifi network:
   while (WiFi.status() != WL_CONNECTED) {
+    //Redice su consumo a 30-40mA.
+    WiFi.lowPowerMode();
+    //para reducir el tiempo de conexion
+    WiFi.config(staticIP, gateway, subnet, dns); 
     Serial.print("[WiFi] Connecting to: ");
     Serial.println(ssid);
     // Connect to WPA/WPA2 network:
+    
     WiFi.begin(ssid, pass);
-
     // wait 10 seconds for connection:
-    delay(100);
+    delay(1000);
   }
   Serial.println("[WiFi] Connected");
 }
