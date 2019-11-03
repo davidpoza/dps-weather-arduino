@@ -35,7 +35,7 @@ volatile int tiempo_pulso;
 
 float transformacionLineal(int rpm){
   if(rpm>0)
-    return(0.5*rpm); // de momento me la invento
+    return(0.036*rpm+3.258); // de momento me la invento
   else
     return(0);
 }
