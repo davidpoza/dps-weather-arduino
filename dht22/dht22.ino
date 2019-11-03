@@ -10,7 +10,7 @@ void setup() {
 }
 
 void loop() {
-  delay(2000);
+  delay(3000);
   float h = dht.readHumidity();
   float t = dht.readTemperature();
   if (isnan(h) || isnan(t)) {
