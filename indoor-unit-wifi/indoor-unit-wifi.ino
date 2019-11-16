@@ -31,7 +31,8 @@ float outdoorTemperature = 0.0;
 float outdoorHumidity = 0.0;
 float pressure = 0.0;
 String lastLogDate = "";
-int discoverAttempts = 0;
+//int discoverAttempts = 0;
+int secondsBetween = 0; //segundos entre lecturas de outdoor
 String token = "";
 
 void setup() {
@@ -60,25 +61,28 @@ void setup() {
 }
 
 void loop() {
-  readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
-  resetBle(&discoverAttempts);
-  Serial.println("Buscando unidad de exterior... ");
-  BLEDevice peripheral = BLE.available();
-  if (peripheral) {
-    Serial.println("Descubierta unidad");
-    if (peripheral.hasLocalName()) {
-      Serial.print("Local Name: ");
-      Serial.println(peripheral.localName());
-    }
-    readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);
-    disconnectBle();
-    lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure);
-    connectBle();
+  readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);  
+  if(secondsBetween == 0) {
+    Serial.println("Buscando unidad de exterior... ");
     BLE.scanForUuid(BLE_OUTDOOR_STATION_ID);
+    BLEDevice peripheral = BLE.available();
+    if (peripheral) {
+      Serial.println("Descubierta unidad");
+      if (peripheral.hasLocalName()) {
+        Serial.print("Local Name: ");
+        Serial.println(peripheral.localName());
+      }
+      readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);
+      disconnectBle();
+      lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure);
+      connectBle();      
+    }
   }
   drawData(indoorTemperature, indoorHumidity, pressure, outdoorTemperature, outdoorHumidity, lastLogDate);
-
-  delay(INDOOR_REFRESH_TIME_SEC*1000);
+  delay(INDOOR_REFRESH_TIME_SEC*100);
+  secondsBetween++;
+  if(secondsBetween == OUTDOOR_REFRESH_TIME_MIN*60) 
+   secondsBetween = 0;
 }
 
 void readLocalSensors(Adafruit_BME280 bme, float *temp, float *humidity, float *pressure){
@@ -124,7 +128,7 @@ void drawData(float t, float h, float p, float te, float he, String lastDate) {
   display.print(p);
   display.println(F(" hPa"));
 
-  display.print(discoverAttempts);
+  display.print(secondsBetween);
   display.print(" | ");
   display.println(lastDate);
   display.display();
@@ -165,5 +169,8 @@ void readRemoteSensors(BLEDevice peripheral, float *temp, float *humidity){
 
     printValues(*temp, *humidity, 0);
 
-    peripheral.disconnect();
+    /* tenemos que desconectar para que la unidad exterior
+     *  salga del bucle de espera a que leamos
+     */
+    peripheral.disconnect(); 
 }

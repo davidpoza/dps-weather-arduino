@@ -3,6 +3,10 @@
 #include "config.h"
 
 /**
+ * Update: 16 Noviembre 2019. Finalmente he decidido alimentar el arduino por usb y descarto la idea de usar baterias, pues
+ * sigo teniendo problemas de cuelgues tras entrar en modo sleep. No ocurre siempre, pero no me da ninguna fiabilidad.
+ * Por lo tanto en la unidad exterior no voy a apagar el BLE en ningun momento, ya que su consumo en reposo es muy bajo.
+ * ------------------------------------------------
  * Los procesadores SAMD21 se cuelgan cuando entran en modo sleep.
  * Esto se debe a que la cpu no espera a que la RAM se levante y el sistema colapsa
  * al tratar de acceder a la misma.
@@ -29,26 +33,58 @@ void deactivate_ble_and_sleep(){
   SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
 }
 
-void activate_ble_and_publish(float temperature, float humidity, float pressure) {
+void activate_ble(
+    BLEService *wstationService,
+    BLEFloatCharacteristic *temperatureCharacteristic,
+    BLEFloatCharacteristic *pressureCharacteristic,
+    BLEFloatCharacteristic *humidityCharacteristic
+  ) {
   #ifdef DEBUG
   Serial.println("Conectando BLE");
   #endif DEBUG
-  BLEFloatCharacteristic temperatureCharacteristic(TEMP_ID, BLERead);
-  BLEFloatCharacteristic pressureCharacteristic(PRESS_ID, BLERead);
-  BLEFloatCharacteristic humidityCharacteristic(HUM_ID, BLERead);
-  temperatureCharacteristic.writeValue(temperature);
-  pressureCharacteristic.writeValue(pressure);
-  humidityCharacteristic.writeValue(humidity);
-  BLEService wstationService(STATION_ID);
+    
   BLE.begin();
   BLE.setLocalName(STATION_NAME);
-  BLE.setAdvertisedService(wstationService);
-  wstationService.addCharacteristic(temperatureCharacteristic);
-  wstationService.addCharacteristic(pressureCharacteristic);
-  wstationService.addCharacteristic(humidityCharacteristic);
-  BLE.addService(wstationService);
+  BLE.setAdvertisedService(*wstationService);
+  wstationService->addCharacteristic(*temperatureCharacteristic);
+  wstationService->addCharacteristic(*pressureCharacteristic);
+  wstationService->addCharacteristic(*humidityCharacteristic);
+  BLE.addService(*wstationService);
+}
+
+
+void publish_data(
+    BLEService *wstationService,
+    float temperature,
+    float humidity,
+    float pressure,
+    BLEFloatCharacteristic *temperatureCharacteristic,
+    BLEFloatCharacteristic *pressureCharacteristic,
+    BLEFloatCharacteristic *humidityCharacteristic
+  ) {
+
+  temperatureCharacteristic->writeValue(temperature);
+  pressureCharacteristic->writeValue(pressure);
+  humidityCharacteristic->writeValue(humidity);
+  
   BLE.advertise();
   #ifdef DEBUG
   Serial.println("Anunciando periférico");
   #endif DEBUG
+}
+
+void printValues(float t, float h, float p) {
+  Serial.print("Temperatura = ");
+  Serial.print(t);
+  Serial.println(" *C");
+
+  Serial.print("Humedad = ");
+  Serial.print(h);
+  Serial.println(" %");
+
+  Serial.print("Presion = ");
+  Serial.print(p);
+  Serial.println(" hPa");
+
+  Serial.println();
 }

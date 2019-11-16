@@ -1,4 +1,9 @@
 /**
+ * 
+ * Update: 16 Noviembre 2019. Finalmente he decidido alimentar el arduino por usb y descarto la idea de usar baterias, pues
+ * sigo teniendo problemas de cuelgues tras entrar en modo sleep. No ocurre siempre, pero no me da ninguna fiabilidad.
+ * Por lo tanto en la unidad exterior no voy a apagar el BLE en ningun momento, ya que su consumo en reposo es muy bajo.
+ * ------------------------------------------------
  * Este código es para la unidad de exterior, que va a ser un periférico
  * que usará el protocolo bluetooth BLE, para transmitir a la unidad interior
  * los datos de los sensores. Gastando muy poca corriente y siendo muy rápido.
@@ -22,6 +27,11 @@ Adafruit_BME280 bme; // I2C
 float temperature;
 float pressure;
 float humidity;
+BLEService wstationService(STATION_ID);
+BLEFloatCharacteristic temperatureCharacteristic(TEMP_ID, BLERead);
+BLEFloatCharacteristic pressureCharacteristic(PRESS_ID, BLERead);
+BLEFloatCharacteristic humidityCharacteristic(HUM_ID, BLERead);
+
   
 void setup() {
   #ifdef DEBUG
@@ -29,13 +39,15 @@ void setup() {
   delay(2000);
   #endif
   pinMode(1, OUTPUT);
+  digitalWrite(1,HIGH); //enciendo el sensor
+  activate_ble(&wstationService, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic);
 }
 
 void loop() {
   #ifdef DEBUG
   Serial.println("Activando sensor bme280");
   #endif DEBUG
-  digitalWrite(1,HIGH); //enciende sensor
+
   while (!bme.begin()) {
     #ifdef DEBUG
     Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
@@ -46,11 +58,10 @@ void loop() {
   pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
   #ifdef DEBUG  
   printValues(temperature, humidity, pressure);
-  Serial.println("Desactivando sensor bme280");
   #endif DEBUG
   
-  digitalWrite(1,LOW); //apago el sensor bme
-  activate_ble_and_publish(temperature, humidity, pressure);
+
+  publish_data(&wstationService, temperature, humidity, pressure, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic);
   BLEDevice central = BLE.central();
   while (!central) {
     central = BLE.central();
@@ -67,21 +78,4 @@ void loop() {
       #endif DEBUG     
     }  
   }
-  deactivate_ble_and_sleep(); 
-}
-
-void printValues(float t, float h, float p) {
-  Serial.print("Temperatura = ");
-  Serial.print(t);
-  Serial.println(" *C");
-
-  Serial.print("Humedad = ");
-  Serial.print(h);
-  Serial.println(" %");
-
-  Serial.print("Presion = ");
-  Serial.print(p);
-  Serial.println(" hPa");
-
-  Serial.println();
 }
