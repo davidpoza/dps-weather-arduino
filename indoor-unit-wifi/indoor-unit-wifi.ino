@@ -31,8 +31,8 @@ float outdoorTemperature = 0.0;
 float outdoorHumidity = 0.0;
 float pressure = 0.0;
 String lastLogDate = "";
-//int discoverAttempts = 0;
-int secondsBetween = 0; //segundos entre lecturas de outdoor
+int secondsBetweenBLE = 0; //segundos entre lecturas de outdoor via BLE
+int secondsBetweenWIFI = 0; //segundos entre envios wifi
 String token = "";
 
 void setup() {
@@ -58,11 +58,11 @@ void setup() {
      while (1);
    }
    BLE.scanForUuid(BLE_OUTDOOR_STATION_ID);
+   readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
 }
 
-void loop() {
-  readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);  
-  if(secondsBetween == 0) {
+void loop() {    
+  if(secondsBetweenBLE == OUTDOOR_REFRESH_TIME_SEC) {
     Serial.println("Buscando unidad de exterior... ");
     BLE.scanForUuid(BLE_OUTDOOR_STATION_ID);
     BLEDevice peripheral = BLE.available();
@@ -72,40 +72,31 @@ void loop() {
         Serial.print("Local Name: ");
         Serial.println(peripheral.localName());
       }
+      
+      readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
       readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);
-      disconnectBle();
-      lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure);
-      connectBle();      
+      secondsBetweenBLE = 0;           
     }
   }
-  drawData(indoorTemperature, indoorHumidity, pressure, outdoorTemperature, outdoorHumidity, lastLogDate);
-  delay(INDOOR_REFRESH_TIME_SEC*100);
-  secondsBetween++;
-  if(secondsBetween == OUTDOOR_REFRESH_TIME_MIN*60) 
-   secondsBetween = 0;
+  
+  if(secondsBetweenWIFI == FREQ_UPDATE_SERVER_MIN*60) {
+    Serial.print("ENTRA ");
+    disconnectBle();
+    lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure);
+    secondsBetweenWIFI = 0;
+    connectBle();
+  } 
+  
+  delay(1000);
+  drawData(indoorTemperature, indoorHumidity, pressure, outdoorTemperature, outdoorHumidity, lastLogDate, secondsBetweenWIFI);
+  
+  secondsBetweenBLE++;
+  secondsBetweenWIFI++;
 }
 
-void readLocalSensors(Adafruit_BME280 bme, float *temp, float *humidity, float *pressure){
-  *temp = bme.readTemperature();
-  *humidity = bme.readHumidity();
-  *pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
-}
 
-void printValues(float t, float h, float p) {
-  Serial.print("Temperatura = ");
-  Serial.print(t);
-  Serial.println(" *C");
 
-  Serial.print("Humedad = ");
-  Serial.print(h);
-  Serial.println(" %");
-
-  Serial.print("Presion = ");
-  Serial.print(p);
-  Serial.println(" hPa");
-}
-
-void drawData(float t, float h, float p, float te, float he, String lastDate) {
+void drawData(float t, float h, float p, float te, float he, String lastDate, int seconds) {
   Serial.println("Actualizando pantalla....");
   display.clearDisplay();
   display.setTextSize(1);      // Normal 1:1 pixel scale
@@ -128,7 +119,7 @@ void drawData(float t, float h, float p, float te, float he, String lastDate) {
   display.print(p);
   display.println(F(" hPa"));
 
-  display.print(secondsBetween);
+  display.print(seconds);
   display.print(" | ");
   display.println(lastDate);
   display.display();

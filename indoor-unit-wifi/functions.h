@@ -2,6 +2,7 @@
 #include <ArduinoBLE.h>
 #include <ArduinoHttpClient.h>
 #include <ArduinoJson.h>
+#include <Adafruit_BME280.h>
 #include "config.h"
 
 WiFiSSLClient client;
@@ -128,4 +129,24 @@ String logData(String token, float indoorT, float indoorH, float outdoorT, float
 
   disconnectWifi();
   return lastDate;
+}
+
+void readLocalSensors(Adafruit_BME280 bme, float *temp, float *humidity, float *pressure){
+  *temp = bme.readTemperature();
+  *humidity = bme.readHumidity();
+  *pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
+}
+
+void printValues(float t, float h, float p) {
+  Serial.print("Temperatura = ");
+  Serial.print(t);
+  Serial.println(" *C");
+
+  Serial.print("Humedad = ");
+  Serial.print(h);
+  Serial.println(" %");
+
+  Serial.print("Presion = ");
+  Serial.print(p);
+  Serial.println(" hPa");
 }
