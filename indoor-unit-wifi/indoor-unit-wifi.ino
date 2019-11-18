@@ -74,9 +74,9 @@ void loop() {
       }
       
       readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
-      readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);
-      secondsBetweenBLE = 0;           
+      readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);                 
     }
+    secondsBetweenBLE = 0;
   }
   
   if(secondsBetweenWIFI == FREQ_UPDATE_SERVER_MIN*60) {
