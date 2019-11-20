@@ -132,7 +132,7 @@ String logData(String token, float indoorT, float indoorH, float outdoorT, float
 }
 
 void readLocalSensors(Adafruit_BME280 bme, float *temp, float *humidity, float *pressure){
-  *temp = bme.readTemperature();
+  *temp = bme.readTemperature()+INDOOR_TEMP_CORRECTION;
   *humidity = bme.readHumidity();
   *pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
 }
