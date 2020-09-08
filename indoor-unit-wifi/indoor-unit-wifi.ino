@@ -59,7 +59,8 @@ void setup() {
 }
 
 void loop() {
-  if(secondsBetweenBLE == OUTDOOR_REFRESH_TIME_SEC) {
+  if(secondsBetweenBLE >= OUTDOOR_REFRESH_TIME_SEC) {
+    secondsBetweenBLE = 0;
     Serial.println("Buscando unidad de exterior... ");
     BLE.scanForUuid(BLE_OUTDOOR_STATION_ID);
     BLEDevice peripheral = BLE.available();
@@ -72,15 +73,13 @@ void loop() {
 
       readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
       readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);
-    }
-    secondsBetweenBLE = 0;
+    }    
   }
 
-  if(secondsBetweenWIFI == FREQ_UPDATE_SERVER_MIN*60) {
-    Serial.print("ENTRA ");
+  if(secondsBetweenWIFI >= FREQ_UPDATE_SERVER_MIN*60) {
+    secondsBetweenWIFI = 0;
     disconnectBle();
     lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure);
-    secondsBetweenWIFI = 0;
     connectBle();
   }
 
