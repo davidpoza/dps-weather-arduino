@@ -3,6 +3,12 @@
  * bluetooth BLE, y entonces lee sus caracteristicas (temperatura, humedad y presión),
  * redibuja la pantalla y raliza el envío via wifi al servidor usando http,
  * En el servidor se encuentra una API REST.
+ *
+ * Fecha: 08/09/2020
+ * El sensor bme280 estaba volviendose loco, tras x horas funcionando, cada vez diferente.
+ * He leído que este sensor se vuelve loco por i2c y la solución es resetearlo.
+ * Aquí explican: https://community.particle.io/t/bme280-sensor-problem/49627/11
+ * Asi que he modificado el wiring para alimentar el BME280 por el pin7 digital y poder resetearlo.
  */
 
 #include "config.h"
@@ -36,32 +42,23 @@ int secondsBetweenWIFI = 0; //segundos entre envios wifi
 String token = "";
 
 void setup() {
+   pinMode(BME280_PIN, OUTPUT); // para alimentar el BME280 y poder resetearlo
    Serial.begin(9600);
    delay(2000);
    connectToWifi();
    token = sendAuth(API_USER, API_PASSWORD);
-   disconnectWifi();   //actualmente wifinina no puede usarse al mismo tiempo que arduinoble
+   disconnectWifi();   // actualmente wifinina no puede usarse al mismo tiempo que arduinoble
    connectBle();
 
    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
      Serial.println(F("SSD1306 allocation failed"));
      for(;;); // Don't proceed, loop forever
    }
-   unsigned status = bme.begin();
-   if (!status) {
-     Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-     Serial.print("SensorID was: 0x"); Serial.println(bme.sensorID(),16);
-     Serial.print("        ID of 0xFF probably means a bad address, a BMP 180 or BMP 085\n");
-     Serial.print("   ID of 0x56-0x58 represents a BMP 280,\n");
-     Serial.print("        ID of 0x60 represents a BME 280.\n");
-     Serial.print("        ID of 0x61 represents a BME 680.\n");
-     while (1);
-   }
    BLE.scanForUuid(BLE_OUTDOOR_STATION_ID);
    readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
 }
 
-void loop() {    
+void loop() {
   if(secondsBetweenBLE == OUTDOOR_REFRESH_TIME_SEC) {
     Serial.println("Buscando unidad de exterior... ");
     BLE.scanForUuid(BLE_OUTDOOR_STATION_ID);
@@ -72,24 +69,24 @@ void loop() {
         Serial.print("Local Name: ");
         Serial.println(peripheral.localName());
       }
-      
+
       readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
-      readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);                 
+      readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);
     }
     secondsBetweenBLE = 0;
   }
-  
+
   if(secondsBetweenWIFI == FREQ_UPDATE_SERVER_MIN*60) {
     Serial.print("ENTRA ");
     disconnectBle();
     lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure);
     secondsBetweenWIFI = 0;
     connectBle();
-  } 
-  
+  }
+
   delay(1000);
   drawData(indoorTemperature, indoorHumidity, pressure, outdoorTemperature, outdoorHumidity, lastLogDate, secondsBetweenWIFI);
-  
+
   secondsBetweenBLE++;
   secondsBetweenWIFI++;
 }
@@ -163,5 +160,5 @@ void readRemoteSensors(BLEDevice peripheral, float *temp, float *humidity){
     /* tenemos que desconectar para que la unidad exterior
      *  salga del bucle de espera a que leamos
      */
-    peripheral.disconnect(); 
+    peripheral.disconnect();
 }

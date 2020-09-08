@@ -1,8 +1,10 @@
+First of all we need to define following constants in config.h file:
+
 #define API_PASSWORD "xxxx"
 #define API_USER "xxxxx"
 #define WIFI_SSID "xxxxx"
 #define WIFI_PASS "xxxxx"
-#define API_SERVER "xxxxx"
+#define API_SERVER "xxxxx" // without protocol
 #define BLE_OUTDOOR_STATION_ID "19B10000-E8F2-537E-4F6C-D104768A1214" //as config on outdoor station
 #define TEMP_ID "19B10001-E8F2-537E-4F6C-D104768A1214"
 #define PRESS_ID "19B10002-E8F2-537E-4F6C-D104768A1214"
@@ -14,3 +16,16 @@
 #define MAX_DISCOVER_ATTEMPTS 100
 #define FREQ_UPDATE_SERVER_MIN 10
 #define INDOOR_TEMP_CORRECTION -4.49
+#define BME280_PIN 7
+
+# Components
+- Arduino MKR1010: Based on ARM (SAMD21), uses 3.3v and includes wifi and bluetooth.
+- BME280: pressure, humidity and temperature sensor all in one. Uses i2c protocol (using 0x76 address)
+- OLED 0.96" 128x64, also using i2c (using 0x3c address)
+
+# Pinout
+- VCC -> OLED VIN
+- GND -> OLED GND, BME280 GND
+- D7 -> BME280 VIN
+- SDA -> BME280 SDA, OLED SDA
+- SCL -> BME280 SCL, OLED SCL

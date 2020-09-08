@@ -6,4 +6,17 @@ First of all, you need to create a file config.h with the following constants:
 #define TEMP_ID "19B10001-E8F2-537E-4F6C-D104768A1214"
 #define PRESS_ID "19B10002-E8F2-537E-4F6C-D104768A1214"
 #define HUM_ID "19B10003-E8F2-537E-4F6C-D104768A1214"
+#define BME280_PIN 6
 //#define DEBUG true
+
+# Components
+- Arduino MKR1010: Based on ARM (SAMD21), uses 3.3v and includes wifi and bluetooth.
+- BME280: pressure, humidity and temperature sensor all in one. Uses i2c protocol (using 0x76 address)
+- OLED 0.96" 128x64, also using i2c (using 0x3c address)
+
+# Pinout
+- VCC -> OLED VIN
+- GND -> OLED GND, BME280 GND
+- D7 -> BME280 VIN
+- SDA -> BME280 SDA, OLED SDA
+- SCL -> BME280 SCL, OLED SCL

@@ -1,6 +1,6 @@
 /**
  * 
- * Update: 16 Noviembre 2019. Finalmente he decidido alimentar el arduino por usb y descarto la idea de usar baterias, pues
+ * Fecha: 16/11/2019. Finalmente he decidido alimentar el arduino por usb y descarto la idea de usar baterias, pues
  * sigo teniendo problemas de cuelgues tras entrar en modo sleep. No ocurre siempre, pero no me da ninguna fiabilidad.
  * Por lo tanto en la unidad exterior no voy a apagar el BLE en ningun momento, ya que su consumo en reposo es muy bajo.
  * ------------------------------------------------
@@ -14,6 +14,12 @@
  * 
  * De este modo optimizamos la bateria de la unidad exterior, pues el protocolo wifi 
  * consume mucho y es lento en comparación. (65ma vs 15ma) y un 15seg vs 0.5seg).
+ *  
+ * Fecha: 08/09/2020
+ * El sensor bme280 estaba volviendose loco, tras x horas funcionando, cada vez diferente.
+ * He leído que este sensor se vuelve loco por i2c y la solución es resetearlo.
+ * Aquí explican: https://community.particle.io/t/bme280-sensor-problem/49627/11
+ * Asi que he modificado el wiring para alimentar el BME280 por el pin7 digital y poder resetearlo.
  */
 
 #include <Adafruit_Sensor.h>
@@ -38,8 +44,7 @@ void setup() {
   Serial.begin(9600);
   delay(2000);
   #endif
-  pinMode(1, OUTPUT);
-  digitalWrite(1,HIGH); //enciendo el sensor
+  pinMode(BME280_PIN, OUTPUT); // sensor bme280
   activate_ble(&wstationService, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic);
 }
 
@@ -48,11 +53,20 @@ void loop() {
   Serial.println("Activando sensor bme280");
   #endif DEBUG
 
-  while (!bme.begin()) {
+  
+  digitalWrite(BME280_PIN, LOW);    // apago el sensor
+  delay(900);
+  digitalWrite(BME280_PIN, HIGH); // turn the sensor on
+  delay(1000);
+
+  while (!bme.begin(0x76)) {
     #ifdef DEBUG
     Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
     #endif
+    delay(1000);
   }
+
+  
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
