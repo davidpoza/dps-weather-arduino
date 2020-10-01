@@ -1,5 +1,5 @@
 int pinAnalogico = A1;
-int pinDigital = 7;
+int pinDigital = 3;
 void setup() {
   pinMode(pinAnalogico, INPUT);
   pinMode(pinDigital, INPUT);
