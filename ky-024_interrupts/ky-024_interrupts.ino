@@ -22,16 +22,11 @@
  * marron: 3.3V
  */
 
-int pinDigital = 7;
-float rpm;
-int tiempo_medicion_inicio = 0;
-int tiempo_medicion_fin = 0;
-int duracion_medicion = 0;
-int duracion_medicion_max = 10; /*en segundos*/
-float velocidad_maxima = 0; //guarda la velocidad maxima registra en el periodo de tiempo indicado por "duracion_medicion_max"
-
-volatile unsigned long tiempo_anterior;
-volatile int tiempo_pulso;
+int digitalPin = 3;
+int rpm;
+int measurements[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int mIndex = 0; // current measurement index in array
+volatile int ticks;
 
 float transformacionLineal(int rpm){
   if(rpm>0)
@@ -42,54 +37,46 @@ float transformacionLineal(int rpm){
 
 void setup() {
   rpm = 0;
-  tiempo_pulso = 0;  
-  tiempo_anterior = millis();  
-  attachInterrupt(pinDigital, acumulador, FALLING);
+  ticks = 0;
+  attachInterrupt(digitalPinToInterrupt(digitalPin), acumulador, FALLING);
   Serial.begin(9600);
 
 }
 
-void loop() {
-  int temp = 0;
-  duracion_medicion = tiempo_medicion_fin - tiempo_medicion_inicio;
-  delay(2); //tan solo para evitar que coincidan inicio y fin
-  tiempo_medicion_fin = millis();
-  
-  if(duracion_medicion > (duracion_medicion_max*1000)) {
-    //en este bloque tomamos la medida y la enviamos al servidor y la reseteamos a 0 para el siguiente ciclo
-    Serial.println("==== CICLO MEDICION COMPLETADO =====");
-    Serial.print("velocidad maxima: ");
-    Serial.println(velocidad_maxima);
-    tiempo_medicion_inicio = millis();
-    duracion_medicion = 0;
-    velocidad_maxima = 0;
+float averageWindSpeed(int measurements[10]) {
+  int acc = 0;
+  for(int i=0; i<10; i++) {
+    acc += measurements[i];
   }
+  return acc / 10;
+}
+
+void loop() {
+  delay(3000); /*para poder hacer la media*/
   
-  
-  delay(500); /*para poder visualizar los datos*/
-  
-  detachInterrupt(0);
+  detachInterrupt(digitalPinToInterrupt(digitalPin));
   //------- no queremos que se interrumpa el cálculo
   
-  rpm = 1000*60  / (tiempo_pulso*3) ; /*pasamos de ms por pulso a vueltas por minuto*/
-
-  Serial.print("tiempo pulso: ");
-  Serial.println(tiempo_pulso);
-  Serial.print("velocidad: ");
+  rpm = ticks*1000*60 / (3000*3);
+  measurements[mIndex] = transformacionLineal(rpm);
+  mIndex++;
+  if (mIndex == 10) {
+    mIndex = 0;
+  }
+  Serial.print("current wind speed km/h: ");
   Serial.println(transformacionLineal(rpm));
   Serial.print("rpm: ");
   Serial.println(rpm);
-  temp = transformacionLineal(rpm);
-  if(temp>0 && temp>velocidad_maxima){
-    velocidad_maxima = temp; 
-  }
-  tiempo_pulso = 0;
-  
+  Serial.print("ticks por cycle: ");
+  Serial.println(ticks);
+  Serial.print("average wind speed km/h: ");
+  Serial.println(averageWindSpeed(measurements));
+
+  ticks = 0;
   //-------
-  attachInterrupt(pinDigital, acumulador, FALLING);
+  attachInterrupt(digitalPinToInterrupt(digitalPin), acumulador, FALLING);
 }
 
 void acumulador(){
-    tiempo_pulso = millis() - tiempo_anterior;
-    tiempo_anterior = millis();
+  ticks++;
 }
