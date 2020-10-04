@@ -7,6 +7,7 @@ First of all, you need to create a file config.h with the following constants:
 #define PRESS_ID "19B10002-E8F2-537E-4F6C-D104768A1214"
 #define HUM_ID "19B10003-E8F2-537E-4F6C-D104768A1214"
 #define BME280_PIN 6
+#define ANEMOMETER_DIGITAL_PIN 3
 //#define DEBUG true
 
 # Components
