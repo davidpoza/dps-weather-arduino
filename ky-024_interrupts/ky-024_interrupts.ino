@@ -28,9 +28,9 @@ int measurements[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int mIndex = 0; // current measurement index in array
 volatile int ticks;
 
-float transformacionLineal(int rpm){
-  if(rpm>0)
-    return(0.036*rpm+3.258); // de momento me la invento
+float transformacionLineal(int ticks){
+  if(ticks>0)
+    return(0.469*ticks+1.71); // de momento me la invento
   else
     return(0);
 }
@@ -58,13 +58,13 @@ void loop() {
   //------- no queremos que se interrumpa el cálculo
   
   rpm = ticks*1000*60 / (3000*3);
-  measurements[mIndex] = transformacionLineal(rpm);
+  measurements[mIndex] = transformacionLineal(ticks);
   mIndex++;
   if (mIndex == 10) {
     mIndex = 0;
   }
   Serial.print("current wind speed km/h: ");
-  Serial.println(transformacionLineal(rpm));
+  Serial.println(transformacionLineal(ticks));
   Serial.print("rpm: ");
   Serial.println(rpm);
   Serial.print("ticks por cycle: ");
