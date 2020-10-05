@@ -58,14 +58,17 @@ void publish_data(
     float temperature,
     float humidity,
     float pressure,
+    float wind,
     BLEFloatCharacteristic *temperatureCharacteristic,
     BLEFloatCharacteristic *pressureCharacteristic,
-    BLEFloatCharacteristic *humidityCharacteristic
+    BLEFloatCharacteristic *humidityCharacteristic,
+    BLEFloatCharacteristic *windCharacteristic
   ) {
 
   temperatureCharacteristic->writeValue(temperature);
   pressureCharacteristic->writeValue(pressure);
   humidityCharacteristic->writeValue(humidity);
+  windCharacteristic->writeValue(wind);
   
   BLE.advertise();
   #ifdef DEBUG
@@ -87,4 +90,27 @@ void printValues(float t, float h, float p) {
   Serial.println(" hPa");
 
   Serial.println();
+}
+
+/**
+ * Transforms ticks per second to Km/h
+ */
+float windLinearTransformation(float ticksSec){
+  Serial.print("Ticks per sec = ");
+  Serial.println(ticksSec);
+  if(ticksSec>0)
+    return(1.41*ticksSec+1.71);
+  else
+    return(0);
+}
+
+/**
+ * Calculates average wind speed using last ten measurements
+ */
+float averageWindSpeed(float measurements[10]) {
+  float acc = 0;
+  for(int i=0; i<10; i++) {
+    acc += measurements[i];
+  }
+  return acc / 10;
 }

@@ -20,6 +20,9 @@
  * He leído que este sensor se vuelve loco por i2c y la solución es resetearlo.
  * Aquí explican: https://community.particle.io/t/bme280-sensor-problem/49627/11
  * Asi que he modificado el wiring para alimentar el BME280 por el pin7 digital y poder resetearlo.
+ * 
+ * Fecha: 04/10/2020
+ * Añadido el anemómetro
  */
 
 #include <Adafruit_Sensor.h>
@@ -30,14 +33,20 @@
 volatile bool just_wakeup = true;
 Adafruit_BME280 bme; // I2C
 
-float temperature;
-float pressure;
-float humidity;
+float temperature; // celsius
+float pressure; // hPa
+float humidity; // %
+float wind; // km/h
+float windMeasurements[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int mIndex = 0; // current measurement index in windMeasurements
+volatile int ticks; // used by interrupt
+unsigned long time;
+
 BLEService wstationService(STATION_ID);
 BLEFloatCharacteristic temperatureCharacteristic(TEMP_ID, BLERead);
 BLEFloatCharacteristic pressureCharacteristic(PRESS_ID, BLERead);
 BLEFloatCharacteristic humidityCharacteristic(HUM_ID, BLERead);
-
+BLEFloatCharacteristic windCharacteristic(WIND_ID, BLERead);
   
 void setup() {
   #ifdef DEBUG
@@ -45,6 +54,9 @@ void setup() {
   delay(2000);
   #endif
   pinMode(BME280_PIN, OUTPUT); // sensor bme280
+  ticks = 0;
+  time = millis();
+  attachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN), tickInc, FALLING);
   activate_ble(&wstationService, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic);
 }
 
@@ -53,7 +65,6 @@ void loop() {
   Serial.println("Activando sensor bme280");
   #endif DEBUG
 
-  
   digitalWrite(BME280_PIN, LOW);    // apago el sensor
   delay(900);
   digitalWrite(BME280_PIN, HIGH); // turn the sensor on
@@ -70,12 +81,21 @@ void loop() {
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
+  detachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN));
+  // we dont want calculation to be interrupted
+  windMeasurements[mIndex] = windLinearTransformation(ticks * 1000 / (millis() - time));
+  attachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN), tickInc, FALLING);
+  time = millis();
+  ticks = 0;
+  mIndex = (mIndex + 1) % 10;
+  wind = averageWindSpeed(windMeasurements);
+  
   #ifdef DEBUG  
   printValues(temperature, humidity, pressure);
   #endif DEBUG
   
 
-  publish_data(&wstationService, temperature, humidity, pressure, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic);
+  publish_data(&wstationService, temperature, humidity, pressure, wind, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic, &windCharacteristic);
   BLEDevice central = BLE.central();
   while (!central) {
     central = BLE.central();
@@ -92,4 +112,8 @@ void loop() {
       #endif DEBUG     
     }  
   }
+}
+
+void tickInc(){
+  ticks++;
 }
