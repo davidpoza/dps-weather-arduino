@@ -35,6 +35,7 @@ float indoorTemperature = 0.0;
 float indoorHumidity = 0.0;
 float outdoorTemperature = 0.0;
 float outdoorHumidity = 0.0;
+float wind = 0.0;
 float pressure = 0.0;
 String lastLogDate = "";
 int secondsBetweenBLE = 0; //segundos entre lecturas de outdoor via BLE
@@ -72,14 +73,14 @@ void loop() {
       }
 
       readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
-      readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity);
+      readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity, &wind);
     }    
   }
 
   if(secondsBetweenWIFI >= FREQ_UPDATE_SERVER_MIN*60) {
     secondsBetweenWIFI = 0;
     disconnectBle();
-    lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure);
+    lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure, wind);
     connectBle();
   }
 
@@ -121,7 +122,7 @@ void drawData(float t, float h, float p, float te, float he, String lastDate, in
   display.display();
 }
 
-void readRemoteSensors(BLEDevice peripheral, float *temp, float *humidity){
+void readRemoteSensors(BLEDevice peripheral, float *temp, float *humidity, float *wind){
     BLE.stopScan(); //si no paro el escaneo no puedo conectar
     // connect to the peripheral
     Serial.println("Conectando ...");
@@ -144,6 +145,7 @@ void readRemoteSensors(BLEDevice peripheral, float *temp, float *humidity){
 
     BLECharacteristic temperatureCharacteristic = peripheral.characteristic(TEMP_ID);
     BLECharacteristic humidityCharacteristic = peripheral.characteristic(HUM_ID);
+    BLECharacteristic windCharacteristic = peripheral.characteristic(WIND_ID);
 
     uint8_t tmp[4];
 
@@ -153,6 +155,9 @@ void readRemoteSensors(BLEDevice peripheral, float *temp, float *humidity){
 
     humidityCharacteristic.readValue(tmp, 4);
     *humidity = *(float*)&tmp;
+
+    windCharacteristic.readValue(tmp, 4);
+    *wind = *(float*)&tmp;
 
     printValues(*temp, *humidity, 0);
 
