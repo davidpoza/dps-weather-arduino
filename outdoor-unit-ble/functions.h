@@ -37,7 +37,8 @@ void activate_ble(
     BLEService *wstationService,
     BLEFloatCharacteristic *temperatureCharacteristic,
     BLEFloatCharacteristic *pressureCharacteristic,
-    BLEFloatCharacteristic *humidityCharacteristic
+    BLEFloatCharacteristic *humidityCharacteristic,
+    BLEFloatCharacteristic *windCharacteristic
   ) {
   #ifdef DEBUG
   Serial.println("Conectando BLE");
@@ -49,6 +50,7 @@ void activate_ble(
   wstationService->addCharacteristic(*temperatureCharacteristic);
   wstationService->addCharacteristic(*pressureCharacteristic);
   wstationService->addCharacteristic(*humidityCharacteristic);
+  wstationService->addCharacteristic(*windCharacteristic);
   BLE.addService(*wstationService);
 }
 

@@ -57,7 +57,7 @@ void setup() {
   ticks = 0;
   time = millis();
   attachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN), tickInc, FALLING);
-  activate_ble(&wstationService, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic);
+  activate_ble(&wstationService, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic, &windCharacteristic);
 }
 
 void loop() {
