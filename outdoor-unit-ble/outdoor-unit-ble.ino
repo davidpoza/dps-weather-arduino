@@ -65,15 +65,13 @@ void loop() {
   Serial.println("Activando sensor bme280");
   #endif DEBUG
 
-  digitalWrite(BME280_PIN, LOW);    // apago el sensor
-  delay(900);
-  digitalWrite(BME280_PIN, HIGH); // turn the sensor on
-  delay(1000);
+  resetBME();
 
   while (!bme.begin(0x76)) {
     #ifdef DEBUG
     Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
     #endif
+    resetBME();
     delay(1000);
   }
 

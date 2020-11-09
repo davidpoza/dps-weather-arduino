@@ -33,6 +33,13 @@ void deactivate_ble_and_sleep(){
   SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
 }
 
+void resetBME () {
+  digitalWrite(BME280_PIN, LOW);    // apago el sensor
+  delay(900);
+  digitalWrite(BME280_PIN, HIGH); // turn the sensor on
+  delay(1000);
+}
+
 void activate_ble(
     BLEService *wstationService,
     BLEFloatCharacteristic *temperatureCharacteristic,
