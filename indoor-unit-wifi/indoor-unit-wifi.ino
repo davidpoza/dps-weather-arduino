@@ -40,6 +40,7 @@ float pressure = 0.0;
 String lastLogDate = "";
 int secondsBetweenBLE = 0; //segundos entre lecturas de outdoor via BLE
 int secondsBetweenWIFI = 0; //segundos entre envios wifi
+long cycles = 0; // contador de loops para forzar un reset al cabo de x loops
 String token = "";
 
 void setup() {
@@ -60,6 +61,10 @@ void setup() {
 }
 
 void loop() {
+  if (cycles >= CYCLES_FOR_RESET) {
+    Serial.println("Reseting...");
+    NVIC_SystemReset();
+  }
   if(secondsBetweenBLE >= OUTDOOR_REFRESH_TIME_SEC) {
     secondsBetweenBLE = 0;
     Serial.println("Buscando unidad de exterior... ");
@@ -89,6 +94,7 @@ void loop() {
 
   secondsBetweenBLE++;
   secondsBetweenWIFI++;
+  cycles++;
 }
 
 

@@ -18,6 +18,7 @@ void connectBle() {
 }
 
 void disconnectBle() {
+  BLE.stopScan();
   while(BLE.connected()){
     BLE.disconnect();
     Serial.println("disconnect BLE failed!");
