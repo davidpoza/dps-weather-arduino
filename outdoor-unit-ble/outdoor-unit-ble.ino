@@ -41,6 +41,7 @@ float windMeasurements[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 int mIndex = 0; // current measurement index in windMeasurements
 volatile int ticks; // used by interrupt
 unsigned long time;
+long cycles = 0; // contador de loops para forzar un reset al cabo de x loops
 
 BLEService wstationService(STATION_ID);
 BLEFloatCharacteristic temperatureCharacteristic(TEMP_ID, BLERead);
@@ -58,24 +59,20 @@ void setup() {
   time = millis();
   attachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN), tickInc, FALLING);
   activate_ble(&wstationService, &temperatureCharacteristic, &pressureCharacteristic, &humidityCharacteristic, &windCharacteristic);
-}
-
-void loop() {
-  #ifdef DEBUG
-  Serial.println("Activando sensor bme280");
-  #endif DEBUG
-
   resetBME();
-
   while (!bme.begin(0x76)) {
     #ifdef DEBUG
     Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
     #endif
-    resetBME();
     delay(1000);
   }
+}
 
-  
+void loop() {
+  if (cycles >= CYCLES_FOR_RESET) {
+    Serial.println("Reseting...");
+    NVIC_SystemReset();
+  }
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
@@ -110,6 +107,7 @@ void loop() {
       #endif DEBUG     
     }  
   }
+  cycles++;
 }
 
 void tickInc(){
