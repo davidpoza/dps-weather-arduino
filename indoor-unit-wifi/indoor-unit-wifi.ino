@@ -85,7 +85,7 @@ void loop() {
   if(secondsBetweenWIFI >= FREQ_UPDATE_SERVER_MIN*60) {
     secondsBetweenWIFI = 0;
     disconnectBle();
-    lastLogDate = logData(token, indoorTemperature, indoorHumidity, outdoorTemperature, outdoorHumidity, pressure, wind);
+    lastLogDate = logData(token, indoorTemperature, indoorHumidity, pressure, wind);
     connectBle();
   }
 

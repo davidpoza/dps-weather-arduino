@@ -111,22 +111,16 @@ String postData(String token, String postData) {
   return lastDate;
 }
 
-String logData(String token, float indoorT, float indoorH, float outdoorT, float outdoorH, float pressure, float wind) {
+String logData(String token, float temperature, float humidity, float pressure, float wind) {
   connectToWifi();
 
-  String indoorTemperatureString = String(indoorT);
-  String indoorHumidityString = String(indoorH);
-  String outdoorTemperatureString = String(outdoorT);
-  String outdoorHumidityString = String(outdoorH);
+  String temperatureString = String(temperature);
+  String humidityString = String(humidity);
   String pressureString = String(pressure);
   String windString = String(wind);
 
   // indoor
-  String postDataString = "station_id="+String(STATION_ID_INDOOR)+"&temperature="+indoorTemperatureString+"&humidity="+indoorHumidityString+"&pressure="+pressureString;
-  postData(token, postDataString);
-
-  // outdoor
-  postDataString = "station_id="+String(STATION_ID_OUTDOOR)+"&temperature="+outdoorTemperatureString+"&humidity="+outdoorHumidityString+"&pressure="+pressureString+"&wind="+windString;
+  String postDataString = "station_id="+String(STATION_ID_INDOOR)+"&temperature="+temperatureString+"&humidity="+humidityString+"&pressure="+pressureString;
   String lastDate = postData(token, postDataString);
 
   disconnectWifi();
