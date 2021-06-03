@@ -71,8 +71,8 @@ void setup() {
 
 void loop() {
   if (cycles >= CYCLES_FOR_RESET) {
-    Serial.println("Reseting...");
-    NVIC_SystemReset();
+    // Serial.println("Reseting...");
+    // NVIC_SystemReset();
   }
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
@@ -89,7 +89,7 @@ void loop() {
 #ifdef DEBUG
   printValues(temperature, humidity, pressure);
 #endif DEBUG
-  if(secondsBetweenWIFI >= FREQ_UPDATE_SERVER_MIN*60) {
+  if(secondsBetweenWIFI >= 60) {
     secondsBetweenWIFI = 0;
     logData(token, temperature, humidity, pressure, wind);
   }
