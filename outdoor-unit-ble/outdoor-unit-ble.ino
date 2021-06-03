@@ -89,7 +89,7 @@ void loop() {
 #ifdef DEBUG
   printValues(temperature, humidity, pressure);
 #endif DEBUG
-  if(secondsBetweenWIFI >= 60) {
+  if(secondsBetweenWIFI >= 60*FREQ_UPDATE_SERVER_MIN) {
     secondsBetweenWIFI = 0;
     logData(token, temperature, humidity, pressure, wind);
   }

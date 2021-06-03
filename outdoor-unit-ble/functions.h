@@ -152,8 +152,8 @@ String logData(String token, float temperature, float humidity, float pressure, 
   String pressureString = String(pressure);
   String windString = String(wind);
 
-  // indoor
-  String postDataString = "station_id="+String(STATION_ID_OUTDOOR)+"&temperature="+temperatureString+"&humidity="+humidityString+"&pressure="+pressureString;
+  // indoor  
+  String postDataString = "station_id="+String(STATION_ID_OUTDOOR)+"&temperature="+temperatureString+"&humidity="+humidityString+"&pressure="+pressureString+"&wind="+windString;
   String lastDate = postData(token, postDataString);
 
   disconnectWifi();
