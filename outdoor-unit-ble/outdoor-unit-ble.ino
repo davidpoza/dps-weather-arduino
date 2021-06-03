@@ -46,7 +46,7 @@ volatile int ticks; // used by interrupt
 unsigned long time;
 long cycles = 0; // contador de loops para forzar un reset al cabo de x loops
 String token = "";
-int secondsBetweenWIFI = 0; //seconds between wifi connections
+int msBetweenWIFI = 0; //seconds between wifi connections
 
 void setup() {
 #ifdef DEBUG
@@ -81,6 +81,7 @@ void loop() {
   // we dont want calculation to be interrupted
   windMeasurements[mIndex] = windLinearTransformation(ticks * 1000 / (millis() - time));
   attachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN), tickInc, FALLING);
+  msBetweenWIFI += millis() - time;
   time = millis();
   ticks = 0;
   mIndex = (mIndex + 1) % 10;
@@ -89,12 +90,10 @@ void loop() {
 #ifdef DEBUG
   printValues(temperature, humidity, pressure);
 #endif DEBUG
-  if(secondsBetweenWIFI >= 60*FREQ_UPDATE_SERVER_MIN) {
-    secondsBetweenWIFI = 0;
+  if(msBetweenWIFI >= 60*1000*FREQ_UPDATE_SERVER_MIN) {
+    msBetweenWIFI = 0;
     logData(token, temperature, humidity, pressure, wind);
   }
-  delay(1000);
-  secondsBetweenWIFI++;
   cycles++;
 }
 
