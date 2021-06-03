@@ -33,12 +33,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 float indoorTemperature = 0.0;
 float indoorHumidity = 0.0;
-float outdoorTemperature = 0.0;
-float outdoorHumidity = 0.0;
 float wind = 0.0;
 float pressure = 0.0;
 String lastLogDate = "";
-int secondsBetweenBLE = 0; //segundos entre lecturas de outdoor via BLE
 int secondsBetweenWIFI = 0; //segundos entre envios wifi
 long cycles = 0; // contador de loops para forzar un reset al cabo de x loops
 String token = "";
@@ -50,7 +47,6 @@ void setup() {
    connectToWifi();
    token = sendAuth(API_USER, API_PASSWORD);
    disconnectWifi();   // actualmente wifinina no puede usarse al mismo tiempo que arduinoble
-   connectBle();
 
    if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
      Serial.println(F("SSD1306 allocation failed"));
@@ -65,24 +61,8 @@ void loop() {
     Serial.println("Reseting...");
     NVIC_SystemReset();
   }
-  if(secondsBetweenBLE >= OUTDOOR_REFRESH_TIME_SEC) {
-    secondsBetweenBLE = 0;
-    Serial.println("Buscando unidad de exterior... ");
-    BLE.scanForUuid(BLE_OUTDOOR_STATION_ID);
-    BLEDevice peripheral = BLE.available();
-    if (peripheral) {
-      Serial.println("Descubierta unidad");
-      if (peripheral.hasLocalName()) {
-        Serial.print("Local Name: ");
-        Serial.println(peripheral.localName());
-      }
-
-      readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
-      readRemoteSensors(peripheral, &outdoorTemperature, &outdoorHumidity, &wind);
-    }    
-  }
-
   if(secondsBetweenWIFI >= FREQ_UPDATE_SERVER_MIN*60) {
+    readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
     secondsBetweenWIFI = 0;
     disconnectBle();
     lastLogDate = logData(token, indoorTemperature, indoorHumidity, pressure, wind);
@@ -90,85 +70,6 @@ void loop() {
   }
 
   delay(1000);
-  drawData(indoorTemperature, indoorHumidity, pressure, outdoorTemperature, outdoorHumidity, lastLogDate, secondsBetweenWIFI);
-
-  secondsBetweenBLE++;
   secondsBetweenWIFI++;
   cycles++;
-}
-
-
-
-void drawData(float t, float h, float p, float te, float he, String lastDate, int seconds) {
-  Serial.println("Actualizando pantalla....");
-  display.clearDisplay();
-  display.setTextSize(1);      // Normal 1:1 pixel scale
-  display.setTextColor(WHITE); // Draw white text
-  display.setCursor(0, 0);     // Start at top-left corner
-
-  display.print(F("T: "));
-  display.print(t);
-  display.print(" | ");
-  display.print(te);
-  display.println(F(" *C"));
-
-  display.print(F("H: "));
-  display.print(h);
-  display.print(" | ");
-  display.print(he);
-  display.println(F(" %"));
-
-  display.print(F("P: "));
-  display.print(p);
-  display.println(F(" hPa"));
-
-  display.print(seconds);
-  display.print(" | ");
-  display.println(lastDate);
-  display.display();
-}
-
-void readRemoteSensors(BLEDevice peripheral, float *temp, float *humidity, float *wind){
-    BLE.stopScan(); //si no paro el escaneo no puedo conectar
-    // connect to the peripheral
-    Serial.println("Conectando ...");
-
-    if (peripheral.connect()) {
-      Serial.println("Conexión realizada con unidad externa");
-    } else {
-    Serial.println("Error al conectar con unidad externa!");
-      return;
-    }
-
-    // IMPORTANTE: hay que hacer un discover antes de poder obtener las caracteristicas
-    if (peripheral.discoverAttributes()) {
-      Serial.println("Attributes discovered");
-    } else {
-      Serial.println("Attribute discovery failed!");
-      peripheral.disconnect();
-      return;
-    }
-
-    BLECharacteristic temperatureCharacteristic = peripheral.characteristic(TEMP_ID);
-    BLECharacteristic humidityCharacteristic = peripheral.characteristic(HUM_ID);
-    BLECharacteristic windCharacteristic = peripheral.characteristic(WIND_ID);
-
-    uint8_t tmp[4];
-
-
-    temperatureCharacteristic.readValue(tmp, 4);
-    *temp = *(float*)&tmp;
-
-    humidityCharacteristic.readValue(tmp, 4);
-    *humidity = *(float*)&tmp;
-
-    windCharacteristic.readValue(tmp, 4);
-    *wind = *(float*)&tmp;
-
-    printValues(*temp, *humidity, 0);
-
-    /* tenemos que desconectar para que la unidad exterior
-     *  salga del bucle de espera a que leamos
-     */
-    peripheral.disconnect();
 }
