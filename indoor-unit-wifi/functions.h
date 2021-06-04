@@ -56,7 +56,7 @@ void connectToWifi() {
 void disconnectWifi() {
   WiFi.disconnect();
   while(WiFi.status() != WL_DISCONNECTED){
-    Serial.println("disconnect BLE failed!");
+    Serial.println("disconnect WIFI failed!");
     WiFi.disconnect();
     delay(1000);
   }

@@ -52,7 +52,6 @@ void setup() {
      Serial.println(F("SSD1306 allocation failed"));
      for(;;); // Don't proceed, loop forever
    }
-   BLE.scanForUuid(BLE_OUTDOOR_STATION_ID);
    readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
 }
 
@@ -64,9 +63,7 @@ void loop() {
   if(secondsBetweenWIFI >= FREQ_UPDATE_SERVER_MIN*60) {
     readLocalSensors(bme, &indoorTemperature, &indoorHumidity, &pressure);
     secondsBetweenWIFI = 0;
-    disconnectBle();
     lastLogDate = logData(token, indoorTemperature, indoorHumidity, pressure, wind);
-    connectBle();
   }
 
   delay(1000);
