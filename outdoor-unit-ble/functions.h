@@ -55,7 +55,9 @@ void printValues(float t, float h, float p) {
 /**
  * Transforms ticks per second to Km/h
  */
-float windLinearTransformation(float ticksSec){
+float windLinearTransformation(float ticksSec, int duracion){
+  Serial.print("La medicion dura: ");
+  Serial.println(duracion);
   Serial.print("Ticks per sec = ");
   Serial.println(ticksSec);
   Serial.print("Wind = ");

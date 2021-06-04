@@ -74,14 +74,16 @@ void loop() {
     // Serial.println("Reseting...");
     // NVIC_SystemReset();
   }
+  delay(2000);
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
   detachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN));
   // we dont want calculation to be interrupted
-  windMeasurements[mIndex] = windLinearTransformation(ticks * 1000 / (millis() - time));
+  windMeasurements[mIndex] = windLinearTransformation(ticks * 1000 / (millis() - time), millis() -time);
   attachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN), tickInc, FALLING);
   msBetweenWIFI += millis() - time;
+
   time = millis();
   ticks = 0;
   mIndex = (mIndex + 1) % 10;
