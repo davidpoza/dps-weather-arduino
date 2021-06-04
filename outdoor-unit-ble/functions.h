@@ -58,6 +58,8 @@ void printValues(float t, float h, float p) {
 float windLinearTransformation(float ticksSec){
   Serial.print("Ticks per sec = ");
   Serial.println(ticksSec);
+  Serial.print("Wind = ");
+  Serial.println(1.41*ticksSec+1.71);
   if(ticksSec>0)
     return(1.41*ticksSec+1.71);
   else
