@@ -49,10 +49,10 @@ String token = "";
 int msBetweenWIFI = 0; //seconds between wifi connections
 
 void setup() {
-#ifdef DEBUG
-  Serial.begin(9600);
-  delay(2000);
-#endif
+  #ifdef DEBUG
+    Serial.begin(9600);
+    delay(2000);
+  #endif
   connectToWifi();
   token = sendAuth(API_USER, API_PASSWORD);
   disconnectWifi();
@@ -60,27 +60,18 @@ void setup() {
   ticks = 0;
   time = millis();
   attachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN), tickInc, FALLING);
-  resetBME();
-  while (!bme.begin(0x76)) {
-#ifdef DEBUG
-    Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
-#endif
-    delay(1000);
-  }
+  resetBME(&bme);
 }
 
 void loop() {
-  if (cycles >= CYCLES_FOR_RESET) {
-    // Serial.println("Reseting...");
-    // NVIC_SystemReset();
-  }
   delay(2000);
+  resetBME(&bme);
   temperature = bme.readTemperature();
   humidity = bme.readHumidity();
   pressure = bme.seaLevelForAltitude(920, bme.readPressure() / 100.0F);
   detachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN));
   // we dont want calculation to be interrupted
-  windMeasurements[mIndex] = windLinearTransformation(ticks * 1000 / (millis() - time), millis() -time);
+  windMeasurements[mIndex] = windLinearTransformation(ticks * 1000 / (millis() - time), millis() - time);
   attachInterrupt(digitalPinToInterrupt(ANEMOMETER_DIGITAL_PIN), tickInc, FALLING);
   msBetweenWIFI += millis() - time;
 
@@ -89,9 +80,10 @@ void loop() {
   mIndex = (mIndex + 1) % 10;
   wind = averageWindSpeed(windMeasurements);
 
-#ifdef DEBUG
-  printValues(temperature, humidity, pressure);
-#endif DEBUG
+  #ifdef DEBUG
+    printValues(temperature, humidity, pressure);
+  #endif DEBUG
+  
   if(msBetweenWIFI >= 60*1000*FREQ_UPDATE_SERVER_MIN) {
     msBetweenWIFI = 0;
     logData(token, temperature, humidity, pressure, wind);

@@ -29,11 +29,17 @@ HttpClient httpClient = HttpClient(client, API_SERVER, API_PORT);
  * The solution for the customer is to disable SysTick interrupt before going to sleep and enable it back after the sleep.
  */
 
-void resetBME () {
+void resetBME (Adafruit_BME280 *bme) {
   digitalWrite(BME280_PIN, LOW);    // apago el sensor
   delay(900);
   digitalWrite(BME280_PIN, HIGH); // turn the sensor on
   delay(1000);
+  while (!(*bme).begin(0x76)) {
+    #ifdef DEBUG
+        Serial.println("Could not find a valid BME280 sensor, check wiring, address, sensor ID!");
+    #endif
+    delay(1000);
+  }
 }
 
 void printValues(float t, float h, float p) {
